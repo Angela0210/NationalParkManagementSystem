@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>national park List</title>
+</head>
+<body>
+
+<div>
+    <!-- The form below should invoke the method NationalParkController.listAll -->
+    <form id="filter-form" th:action="@{/national-parks}" th:method="GET">
+        <label for="name">National Park Name</label>
+        <input id="name" type="text" name="name"  th:value="${name}"/>
+
+        <label for="areaSize">National Park Area Size (in square meters)</label>
+        <input id="areaSize" type="number" name="areaSize" th:value="${areaSize}"/>
+
+        <label for="rating">Rating</label>
+        <input id="rating" type="number" step="0.1" min="0" max="10" name="rating" th:value="${rating}"/>
+
+        <label for="parkType">National Park Type</label>
+        <select id="parkType" name="parkType">
+            <option value="">All</option>
+            <option th:each="lvl : ${parkTypes}"
+                    th:value="${lvl}"
+                    th:text="${lvl}"
+                    th:selected="${parkType != null && parkType == lvl}">
+            </option>
+        </select>
+
+        <label for="location">ParkLocation</label>
+        <select id="location" name="locationId">
+            <option value="">All</option>
+            <!-- For each location you should have one <option> like below  -->
+<!--            <option>[location.country], [location.continent]</option>-->
+            <option th:each="location : ${locations}"
+                    th:value="${location.getId()}"
+                    th:text="${location.country+','+ location.continent}"
+                    th:selected="${locationId != null && locationId == location.getId()}">
+            </option>
+
+        </select>
+
+        <button id="filter" type="submit">Filter</button>
+    </form>
+
+    <div>
+        <!-- NationalParkController.showAdd -->
+        <a
+           th:href="@{'/national-parks/add'}"
+           sec:authorize="hasRole('ADMIN')"
+
+           class="add-item">Add new national park</a>
+    </div>
+
+    <table>
+        <tr>
+            <th>National Park</th>
+            <th>Area Size</th>
+            <th>Rating</th>
+            <th>National Park Type</th>
+            <th>ParkLocation</th>
+            <th>Open/Closed</th>
+            <th>Actions</th>
+        </tr>
+        <!-- For each national park you should have one <tr> like below -->
+        <tr th:each="nationalPark : ${page.getContent()}" class="item">
+            <td th:text="${nationalPark.getName()}">[park.name]</td>
+            <td th:text="${nationalPark.getAreaSize()}">[park.areaSize]</td>
+            <td th:text="${nationalPark.getRating()}">[park.rating]</td>
+            <td th:text="${nationalPark.getParkType().name()}">[park.parkType]</td>
+            <td th:text="${nationalPark.location.country + ',' + nationalPark.location.continent}">>[park.location.country], [park.location.continent]</td>
+            <td th:text="${!nationalPark.isClosed()} ? 'OPEN' : 'CLOSED'">[park.closed] -> OPEN/CLOSED</td>
+            <td>
+                <!-- NationalParkController.edit -->
+                <a th:href="@{'/national-parks/edit/{id}' (id=${nationalPark.getId()})}" sec:authorize="hasRole('ADMIN')"
+                    class="edit-item">Edit</a>
+
+                <!-- NationalParkController.delete -->
+                <form th:action="@{'/national-parks/delete/{id}' (id=${nationalPark.getId()})}"
+                      sec:authorize="hasRole('ADMIN')"
+
+                      th:method="POST">
+                    <button type="submit" class="delete-item">Delete</button>
+                </form>
+
+                <!-- NationalParkController.close -->
+                <form th:if="${!nationalPark.isClosed()}"
+                      th:action="@{'/national-parks/close/{id}' (id=${nationalPark.getId()})}"
+                      sec:authorize="hasRole('ADMIN')"
+                      th:method="POST">
+                    <button type="submit" class="close-item">Close</button>
+                </form>
+
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div>
+    <ul id="nav">
+        <li><a href="/">Home</a></li>
+        <li><a href="/login">Login</a></li>
+        <li><a href="/logout">Logout</a></li>
+    </ul>
+</div>
+
+</body>
+</html>
